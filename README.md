@@ -1,2 +1,2 @@
-# WolfAndSheeps
-Simple simulation of wolf eating sheeps 
+# WolfAndSheep
+Simple simulation of wolf eating sheep

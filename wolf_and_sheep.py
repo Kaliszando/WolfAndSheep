@@ -1,3 +1,5 @@
+import csv
+
 from wolf import Wolf
 from sheep import Sheep
 
@@ -17,8 +19,11 @@ for i in range(sheep_count):
 
 # log formatter
 epoch_log = '[{:2}]\twolf: ({: >7.3f}, {: >7.3f})\tno sheep: {:2}'
-eaten_log = '  •-——— sheep [{:2}] is dead'
+eaten_log = '  •———— sheep [{:2}] is dead'
 print(epoch_log.format(0, wolf.get_pos()[0], wolf.get_pos()[1], len(flock)))
+
+# files data init
+csv_rows = []
 
 # main loop
 for i in range(1, epochs+1):
@@ -48,6 +53,19 @@ for i in range(1, epochs+1):
                            len(flock))
           )
 
+    # update data to save
+    csv_rows.append([i, len(flock)])
+
     # end loop if no sheep in flock
     if len(flock) < 1:
         break
+
+# save data to csv
+with open('alive.csv', mode='w', encoding='utf-8', newline="") as csv_file:
+    fieldnames = ['epoch_no', 'living_sheep']
+    writer = csv.writer(csv_file)
+    writer.writerow(fieldnames)
+    writer.writerows(csv_rows)
+
+
+

@@ -4,12 +4,12 @@ from directions import Directions
 
 
 class Sheep:
-    def __init__(self, sheep_move_dist, id, init_pos_limit):
+    def __init__(self, sheep_move_dist, sheep_id, init_pos_limit):
         self._x = random.uniform(-init_pos_limit, init_pos_limit)
         self._y = random.uniform(-init_pos_limit, init_pos_limit)
         self._move_dist = sheep_move_dist
         self.wolf_dist = None
-        self.id = id
+        self.id = sheep_id
 
     def move(self):
         direction = random.choice(list(Directions))

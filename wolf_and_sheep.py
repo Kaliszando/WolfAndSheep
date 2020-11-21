@@ -6,7 +6,7 @@ from sheep import Sheep
 
 # params init
 init_pos_limit = 10.0
-epochs = 90
+epochs = 50
 sheep_count = 15
 sheep_move_dist = 0.5
 wolf_move_dist = 1.0
@@ -24,13 +24,22 @@ for i in range(sheep_count):
     sheep_pos.append(flock[i].get_pos())
 
 # log formatter
-epoch_log = '[{:2}]\twolf: ({: >7.3f}, {: >7.3f})\tno sheep: {:2}'
+epoch_log = '[{:2}]\twolf: ({: >7.3f}, {: >7.3f})\tno. sheep: {:2}'
 eaten_log = '  •———— sheep [{:2}] is dead'
 print(epoch_log.format(0, wolf.get_pos()[0], wolf.get_pos()[1], len(flock)))
 
 # files var init
-csv_rows = []
 json_str = ''
+
+# init alive.csv file
+with open('alive.csv', mode='w', newline="") as csv_file:
+    fieldnames = ['epoch_no', 'living_sheep']
+    writer = csv.writer(csv_file)
+    writer.writerow(fieldnames)
+
+# init pos.json file
+with open('pos.json', mode='w', newline='') as json_file:
+    pass
 
 # main loop
 for i in range(1, epochs+1):
@@ -62,28 +71,20 @@ for i in range(1, epochs+1):
                            len(flock))
           )
 
-    # update csv data
-    csv_rows.append([i, len(flock)])
+    # append data to csv file
+    with open('alive.csv', mode='a', newline="") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow([i, len(flock)])
 
-    # json format
-    json_row = {
-        'round_no': i,
-        'wolf_pos': wolf.get_pos(),
-        'sheep_pos': sheep_pos
-    }
-    json_str += json.dumps(json_row, indent=4)
+    # append data to json file
+    with open('pos.json', mode='a', newline='') as json_file:
+        json_row = {
+            'round_no': i,
+            'wolf_pos': wolf.get_pos(),
+            'sheep_pos': sheep_pos
+        }
+        json_file.write(json.dumps(json_row, indent=4))
 
     # end loop if no sheep in flock
     if len(flock) < 1:
         break
-
-# save data to csv
-with open('alive.csv', mode='w', encoding='utf-8', newline="") as csv_file:
-    fieldnames = ['epoch_no', 'living_sheep']
-    writer = csv.writer(csv_file)
-    writer.writerow(fieldnames)
-    writer.writerows(csv_rows)
-
-# save data to json
-with open('pos.json', mode='w', encoding='utf-8', newline='') as json_file:
-    json_file.write(json_str)

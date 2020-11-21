@@ -130,3 +130,7 @@ dmypy.json
 
 # PyCharm
 .idea/
+
+# dev ignored
+*alive.csv
+*pos.json

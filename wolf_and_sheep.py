@@ -2,6 +2,7 @@ import csv
 import json
 import argparse
 import os
+import configparser
 
 from wolf import Wolf
 from sheep import Sheep
@@ -37,21 +38,47 @@ log_dir = os.getcwd()
 
 # parse arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('-c', '--config', type=file_type, metavar='FILE',
-                    help='specify config file with initial values', dest='conf_file')
-parser.add_argument('-d', '--dir', type=dir_type, metavar='DIR',
-                    help='specify path to catalog that holds generated files', dest='log_dir')
-parser.add_argument('-l', '--log', type=int, metavar='LEVEL', dest='log_lvl',
-                    help='choose level of logs saved in chase.log file')
-parser.add_argument('-r', '--rounds', type=int, metavar='NUM', dest='rounds_no',
-                    help='specify max number of iterations')
-parser.add_argument('-s', '--sheep', type=int, metavar='NUM', dest='sheep_no',
+parser.add_argument('-c', '--config',
+                    type=file_type,
+                    metavar='FILE',
+                    help='specify config file with initial values',
+                    dest='conf_file'
+                    )
+parser.add_argument('-d', '--dir',
+                    type=dir_type,
+                    metavar='DIR',
+                    help='specify path to catalog that holds generated files',
+                    dest='log_dir'
+                    )
+parser.add_argument('-l', '--log',
+                    type=int,
+                    metavar='LEVEL',
+                    help='choose level of logs saved in chase.log file',
+                    dest='log_lvl'
+                    )
+parser.add_argument('-r', '--rounds',
+                    type=int,
+                    metavar='NUM',
+                    help='specify max number of iterations',
+                    dest='rounds_no'
+                    )
+parser.add_argument('-s', '--sheep',
+                    type=int,
+                    metavar='NUM',
+                    dest='sheep_no',
                     help='specify number of sheep in flock: 10: DEBUG, 20: INFO, '
-                         '30: WARNING, 40: ERROR, 50: CRITICAL')
-parser.add_argument('-w', '--wait', action='store_true', dest='wait_flag',
-                    help='wait for user at the end of each round to continue')
-parser.add_argument('-q', '--quiet', action='store_false', dest='quiet_flag',
-                    help='do not print info in terminal')
+                         '30: WARNING, 40: ERROR, 50: CRITICAL'
+                    )
+parser.add_argument('-w', '--wait',
+                    action='store_true',
+                    dest='wait_flag',
+                    help='wait for user at the end of each round to continue'
+                    )
+parser.add_argument('-q', '--quiet',
+                    action='store_false',
+                    dest='quiet_flag',
+                    help='do not print info in terminal'
+                    )
 args = parser.parse_args()
 
 # check optional args
@@ -59,8 +86,22 @@ wait_flag = args.wait_flag
 print_flag = args.quiet_flag
 
 if args.conf_file:
-    # TODO
-    print(args.conf_file)
+    config = configparser.ConfigParser()
+    config.read(args.conf_file)
+
+    terrain = config['Terrain']
+    movement = config['Movement']
+
+    if float(terrain['InitPosLimit']) < 0:
+        raise ValueError('negative value in config file: InitPosLimit')
+    if float(movement['SheepMoveDist']) < 0:
+        raise ValueError('negative value in config file: SheepMoveDist')
+    if float(movement['WolfMoveDist']) < 0:
+        raise ValueError('negative value in config file: WolfMoveDist')
+
+    init_pos_limit = float(terrain['InitPosLimit'])
+    sheep_move_dist = float(movement['SheepMoveDist'])
+    wolf_move_dist = float(movement['WolfMoveDist'])
 
 if args.log_dir:
     log_dir = os.path.join(log_dir, args.log_dir)
@@ -74,7 +115,6 @@ if args.rounds_no and args.rounds_no >= 0:
 
 if args.sheep_no and args.sheep_no > 0:
     sheep_count = args.sheep_no
-
 
 # sheep list
 flock = []
@@ -101,12 +141,12 @@ with open(os.path.join(log_dir, 'alive.csv'), mode='w', newline="") as csv_file:
     writer.writerow(fieldnames)
 
 # init pos.json file
-with open('pos.json', mode='w', newline='') as json_file:
+with open(os.path.join(log_dir, 'pos.json'), mode='w', newline='') as json_file:
     pass
 
 # wait for user input
 if wait_flag:
-    input('Press enter to continue ')
+    input('Press enter to continue: ')
 
 # main loop
 for i in range(1, epochs + 1):
@@ -146,7 +186,7 @@ for i in range(1, epochs + 1):
         writer.writerow([i, len(flock)])
 
     # append data to json file
-    with open('pos.json', mode='a', newline='') as json_file:
+    with open(os.path.join(log_dir, 'pos.json'), mode='a', newline='') as json_file:
         json_row = {
             'round_no': i,
             'wolf_pos': wolf.get_pos(),
@@ -159,5 +199,5 @@ for i in range(1, epochs + 1):
         break
 
     # wait for user input
-    if wait_flag and input('Press enter to continue ') == 'exit':
+    if wait_flag and input('Press enter to continue: ') == 'exit':
         break
